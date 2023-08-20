@@ -1,0 +1,12 @@
+
+.App {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #9797e1;
+}
+
+.card-body{
+  overflow-y: scroll;
+}
+
