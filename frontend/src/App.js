@@ -9,37 +9,50 @@ const App = () => {
   //states
   const [inputMsg, setInputMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const [chatMsg, setChatMsg] = useState([
+  const [chatHistory, setChatHistory] = useState([
     {
-      user: "bot",
-      message: "Hi, how can I help you?"
+      role: "bot",
+      content: "Hi, how can I help you?"
     }
   ]);
 
-  const url = "https://localhost:5001/api/gptnonstream";
+  const url = "http://localhost:5001/api/gptnonstream";
   //HandleSubmit
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setLoading(true);
-    let newMessage = [
-      ...chatMsg, {
-        user : 'me',
-        message : inputMsg
-      }
-    ]
-    setChatMsg(newMessage);
-    const message = newMessage.map((msg) => msg.message).join("\n");
 
+    //把使用者輸入的訊息  加入到chatHistory
+    let newChatHistory = [
+      ...chatHistory, {
+        role: 'me',
+        content: `${inputMsg}`
+      }
+    ];
+
+    setChatHistory(newChatHistory);
+
+    //清空inputMsg
+    setInputMsg("");
+
+    //把chatHistory 轉成一個字串
+    const promptMessage = newChatHistory.map((msg) => msg.content).join("\n");
+    console.log('promptMessage' , promptMessage);
+
+    //call api
     try {
-      const { data } = axios.post(url, {
-        "message": message
+      const { data } = await axios.post(url, {
+        prompt: promptMessage
       });
-      setChatMsg([
-        ...newMessage, 
+      console.log('gpt_response:' , data.gpt_response);
+
+      //把生成的回覆加入到chatHistory
+      setChatHistory([
+        ...newChatHistory,
         {
-          user : 'bot',
-          message : `${data.message}`
+          role: 'bot',
+          content: `${data.gpt_response}`
         }
-      ])
+      ]);
       setLoading(false);
 
     } catch (error) {
@@ -54,8 +67,13 @@ const App = () => {
       e.preventDefault();
       e.stopPropagation();
       handleSubmit();
-      setInputMsg("");
+      // setInputMsg("");
     }
+  }
+
+  // clear chat
+  const clearChat = () => {
+    setChatHistory([]);
   }
 
 
@@ -71,50 +89,65 @@ const App = () => {
                   type="button"
                   className="btn btn-dark btn-sm"
                   data-mdb-ripple-color="dark"
+                  onClick={clearChat}
                 >
                   Clear Chat
                 </button>
               </div>
+
+
               <div
                 className="card-body"
                 data-mdb-perfect-scrollbar="true"
                 style={{ position: "relative", height: 400 }}
               >
-                <div className="d-flex flex-row justify-content-start">
-                  <img
-                    src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
-                    alt="avatar 1"
-                    style={{ width: 45, height: "100%" }}
-                  />
-                  <div>
-                    <p
-                      className="small p-2 ms-3 mb-1 rounded-3"
-                      style={{ backgroundColor: "#f5f6f7" }}
-                    >
-                      Hi
-                    </p>
+                {
+                  chatHistory.map((msg, index) => {
+                    // console.log(msg);
+                    return (
+                      <div key={index}>
+                        {
+                          msg.role === 'me' ?
+                            <div className="d-flex flex-row justify-content-end mb-4 pt-1">
+                              <div>
+                                <p className="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
+                                  {msg.content}
+                                </p>
 
-                    <p className="small ms-3 mb-3 rounded-3 text-muted">23:58</p>
-                  </div>
-                </div>
+                                <p className="small me-3 mb-3 rounded-3 text-muted d-flex justify-content-end">
+                                  00:06
+                                </p>
+                              </div>
+                              <img
+                                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava4-bg.webp"
+                                alt="avatar 1"
+                                style={{ width: 45, height: "100%" }}
+                              />
+                            </div>
+                            :
+                            <div className="d-flex flex-row justify-content-start">
+                              <img
+                                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
+                                alt="avatar 1"
+                                style={{ width: 45, height: "100%" }}
+                              />
+                              <div>
+                                <p
+                                  className="small p-2 ms-3 mb-1 rounded-3"
+                                  style={{ backgroundColor: "#f5f6f7" }}
+                                >
+                                  {msg.content}
+                                </p>
 
-
-                <div className="d-flex flex-row justify-content-end mb-4 pt-1">
-                  <div>
-                    <p className="small p-2 me-3 mb-1 text-white rounded-3 bg-primary">
-                      Hiii, I'm good.
-                    </p>
-
-                    <p className="small me-3 mb-3 rounded-3 text-muted d-flex justify-content-end">
-                      00:06
-                    </p>
-                  </div>
-                  <img
-                    src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava4-bg.webp"
-                    alt="avatar 1"
-                    style={{ width: 45, height: "100%" }}
-                  />
-                </div>
+                                <p className="small ms-3 mb-3 rounded-3 text-muted">23:58</p>
+                              </div>
+                            </div>
+                        }
+                      </div>
+                    )
+                  }
+                  )}
+                  
 
               </div>
               <div className="card-footer text-muted d-flex justify-content-start align-items-center p-3">
@@ -140,9 +173,13 @@ const App = () => {
                   <i className="fas fa-smile" />
                 </a> */}
 
-                <a className="ms-3" href="#!" onClick={handleSubmit}>
-                  <i className="fas fa-paper-plane" />
-                </a>
+                {
+                  loading ? ('GPT is typing...') :
+                    (<a className="ms-3" href="#!" onClick={handleSubmit}>
+                      <i className="fas fa-paper-plane" />
+                    </a>)
+                }
+
               </div>
             </div>
           </div>

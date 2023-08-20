@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request
+from flask_cors import CORS
 from urllib.parse import unquote
 from decouple import config
 from web import decode_website
@@ -24,6 +25,7 @@ openai.api_key = "d8fa7a95cb5548ef82ae72c929d61954"
 openai.api_version = "2022-12-01"
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def home():
@@ -63,10 +65,10 @@ def get_data():
 @app.route('/api/gptnonstream', methods=['POST'])
 def gptnonstream():
     data = request.get_json()
-    message = data['message']
+    prompt = data['prompt']
     response = openai.Completion.create(
         engine="text-davinci-003-deployment",
-        prompt=message,
+        prompt=prompt,
         temperature=0.9,
         max_tokens=150,
         top_p=1,
@@ -78,9 +80,9 @@ def gptnonstream():
 
     return jsonify(
             {
-            "message": response.choices[0].text
+            "gpt_response": response.choices[0].text
         }
-    )
+    ), 201
 
 if __name__ == "__main__":
 
