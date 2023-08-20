@@ -17,12 +17,12 @@ os.environ["OPENAI_API_TYPE"] = config('OPENAI_API_TYPE')
 os.environ["OPENAI_API_BASE"] = config('OPENAI_API_BASE')
 os.environ["OPENAI_API_VERSION"] = config('OPENAI_API_VERSION')
 
-openai.api_type = "azure"
-openai.api_base = 'https://jz-openai-eastus.openai.azure.com'
-openai.api_key = "d8fa7a95cb5548ef82ae72c929d61954"
-# openai.api_base = 'https://jz-oai400-uksouth.openai.azure.com'
-# openai.api_key = "c3cf350a803b4b9f81aa034569e91087"
-openai.api_version = "2022-12-01"
+openai.api_type = config('OPENAI_API_TYPE')
+openai.api_base = config('OPENAI_API_BASE')
+openai.api_key = config('OPENAI_API_KEY')
+openai.api_version = config('OPENAI_API_VERSION')
+
+
 
 app = Flask(__name__)
 CORS(app)
