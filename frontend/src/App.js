@@ -1,7 +1,7 @@
 // import logo from './logo.svg';
 import './App.css';
 
-import React, { useState, useEffect, useFef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 const App = () => {
@@ -15,6 +15,13 @@ const App = () => {
       content: "Hi, how can I help you?"
     }
   ]);
+
+  //ref
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory]);
 
   const url = "http://localhost:5001/api/gptnonstream";
   //HandleSubmit
@@ -36,14 +43,14 @@ const App = () => {
 
     //把chatHistory 轉成一個字串
     const promptMessage = newChatHistory.map((msg) => msg.content).join("\n");
-    console.log('promptMessage' , promptMessage);
+    console.log('promptMessage', promptMessage);
 
     //call api
     try {
       const { data } = await axios.post(url, {
         prompt: promptMessage
       });
-      console.log('gpt_response:' , data.gpt_response);
+      console.log('gpt_response:', data.gpt_response);
 
       //把生成的回覆加入到chatHistory
       setChatHistory([
@@ -61,6 +68,12 @@ const App = () => {
 
   }
 
+  // format time
+  const formatTime = () => {
+    const date = new Date();
+    return `${date.toUTCString()}`;
+  }
+
   //onKeyDown
   const onKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -76,6 +89,11 @@ const App = () => {
     setChatHistory([]);
   }
 
+  const gpt_img = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1024px-ChatGPT_logo.svg.png"
+  // const user_img = "https://www.hillspet.com/content/dam/cp-sites/hills/hills-pet/en_us/exported/dog-breeds/images/img_DogBreed-West-Highland-White-Terrier.jpg"
+  // const user_img = "https://bvtrainingcenter.com/wp-content/uploads/2019/08/Westie-Puppy-Ethel-852x1024.jpg"
+  // const user_img = "https://cdn.wallpapersafari.com/56/18/pZLMGq.jpg"
+  const user_img = "https://i.pinimg.com/1200x/7b/fa/22/7bfa22b301a4491d79eae70f62541f44.jpg"
 
   return (
     <div className="App">
@@ -115,21 +133,23 @@ const App = () => {
                                 </p>
 
                                 <p className="small me-3 mb-3 rounded-3 text-muted d-flex justify-content-end">
-                                  00:06
+                                  {formatTime()}
                                 </p>
                               </div>
                               <img
-                                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava4-bg.webp"
+                                src={user_img}
                                 alt="avatar 1"
-                                style={{ width: 45, height: "100%" }}
+                                className="rounded-circle"
+                                style={{ width: 45, height: 45 }}
                               />
                             </div>
                             :
                             <div className="d-flex flex-row justify-content-start">
                               <img
-                                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
+                                src={gpt_img}
                                 alt="avatar 1"
-                                style={{ width: 45, height: "100%" }}
+                                className="rounded-circle"
+                                style={{ width: 45, height: 45 }}
                               />
                               <div>
                                 <p
@@ -139,7 +159,9 @@ const App = () => {
                                   {msg.content}
                                 </p>
 
-                                <p className="small ms-3 mb-3 rounded-3 text-muted">23:58</p>
+                                <p className="small ms-3 mb-3 rounded-3 text-muted">
+                                  {formatTime()}
+                                </p>
                               </div>
                             </div>
                         }
@@ -147,14 +169,16 @@ const App = () => {
                     )
                   }
                   )}
-                  
+                <div ref={chatEndRef} />
+
 
               </div>
               <div className="card-footer text-muted d-flex justify-content-start align-items-center p-3">
                 <img
-                  src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3-bg.webp"
-                  alt="avatar 3"
-                  style={{ width: 40, height: "100%" }}
+                  src={user_img}
+                  alt="avatar 1"
+                  className="rounded-circle"
+                  style={{ width: 45, height: 45 }}
                 />
                 <input
                   type="text"
